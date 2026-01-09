@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 import yaml
+
 import argparse
 import logging
 from pathlib import Path
@@ -22,11 +24,11 @@ logger = logging.getLogger(__name__)
 def load_config(config_path: str):
     with open(config_path, 'r') as f: return yaml.safe_load(f)
 
-def train_one_epoch(model, loader, criterion, optimizer, device):
+def train_one_epoch(model, loader, criterion, optimizer, device, writer, epoch):
     model.train()
     running_loss, correct, total = 0.0, 0, 0
     pbar = tqdm(loader, desc="Training", leave=False)
-    for images, labels in pbar:
+    for i, (images, labels) in enumerate(pbar):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
         outputs = model(images)
@@ -40,7 +42,11 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         correct += (predicted == labels).sum().item()
         pbar.set_postfix({'loss': loss.item()})
         
+        # Log step loss
+        writer.add_scalar('Batch/Loss', loss.item(), epoch * len(loader) + i)
+        
     return running_loss / total, 100 * correct / total
+
 
 def validate(model, loader, criterion, device):
     model.eval()
@@ -86,14 +92,21 @@ def main(config_path: str, dry_run: bool = False):
     model = PneumoniaResNet(config['model']['num_classes'], config['model']['pretrained']).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['train']['lr'])
+    writer = SummaryWriter('runs')
     
     best_val_acc = 0.0
     for epoch in range(config['train']['epochs']):
-        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device, writer, epoch)
         val_loss, val_acc = validate(model, val_loader, criterion, device)
         logger.info(f"Epoch [{epoch+1}] Train Loss: {train_loss:.4f} Acc: {train_acc:.2f}% | Val Loss: {val_loss:.4f} Acc: {val_acc:.2f}%")
         
+        writer.add_scalar('Train/Loss', train_loss, epoch)
+        writer.add_scalar('Train/Acc', train_acc, epoch)
+        writer.add_scalar('Val/Loss', val_loss, epoch)
+        writer.add_scalar('Val/Acc', val_acc, epoch)
+        
         if val_acc > best_val_acc:
+
             best_val_acc = val_acc
             save_checkpoint({'epoch': epoch+1, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict(), 'best_val_acc': best_val_acc}, "best_model.pth")
             logger.info(f"New best model saved with Acc: {best_val_acc:.2f}%")
