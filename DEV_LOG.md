@@ -20,3 +20,8 @@ Project migrated to `D:\Projects\Pneumonia-XRay` due to file system changes. All
 1.  **Pipeline**: Full Training/Eval pipeline implemented (ResNet18).
 2.  **Data**: Patient-level splitting implemented.
 3.  **Status**: Ready for production training on real data.
+
+### Remote Configuration (2026-01-09)
+- **Technical Context**: Configured remote `origin` pointing to `https://github.com/lapchucolin/X-ray-deeplearning.git` and pushed `master` branch.
+- **Why**: To establish off-site backup and enable remote version control.
+
