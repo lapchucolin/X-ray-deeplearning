@@ -13,7 +13,14 @@ Project migrated to `D:\Projects\Pneumonia-XRay` due to file system changes. All
 - [x] Configs & Env
 - [x] Source Code (Model, Train, Eval, Utils)
 - [x] Data Utilities (Download, Split, EDA)
-- [ ] Data Re-download (Pending User Action)
+- [x] Data Re-download (Pending User Action)
+
+
+### Restoration Complete (2026-01-09)
+- **Status**: Successfully restored data and generated splits.
+- **Verification**: Passed `eda_check.py` and `train.py --dry-run`.
+- **Infrastructure**: Git standardized to `main`.
+
 
 ---
 ### Previous Progress (Summary)

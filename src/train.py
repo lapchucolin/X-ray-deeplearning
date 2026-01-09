@@ -56,8 +56,13 @@ def validate(model, loader, criterion, device):
             correct += (predicted == labels).sum().item()
     return running_loss / total, 100 * correct / total
 
-def main(config_path: str):
+def main(config_path: str, dry_run: bool = False):
     config = load_config(config_path)
+    if dry_run:
+        logger.warning("DRY RUN MODE: Setting epochs=1, batch_size=2, and limiting data.")
+        config['train']['epochs'] = 1
+        config['data']['batch_size'] = 2
+
     seed_everything(config['train']['seed'])
     device = get_device()
     logger.info(f"Using device: {device}")
@@ -71,6 +76,10 @@ def main(config_path: str):
 
     train_loader = DataLoader(ChestXRayDataset(str(train_csv), transform=get_transforms('train', config['data']['img_size'])), 
                               batch_size=config['data']['batch_size'], shuffle=True, num_workers=config['data']['num_workers'])
+    if dry_run:
+        # Limit to 10 batches for speed
+        train_loader = [x for i, x in enumerate(train_loader) if i < 5]
+
     val_loader = DataLoader(ChestXRayDataset(str(val_csv), transform=get_transforms('val', config['data']['img_size'])), 
                             batch_size=config['data']['batch_size'], shuffle=False, num_workers=config['data']['num_workers'])
     
@@ -92,5 +101,6 @@ def main(config_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default='configs/config.yaml')
+    parser.add_argument('--dry-run', action='store_true', help='Run a single epoch on a subset for debugging')
     args = parser.parse_args()
-    main(args.config)
+    main(args.config, args.dry_run)

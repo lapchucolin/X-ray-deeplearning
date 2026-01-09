@@ -21,7 +21,7 @@ def get_image_files(data_dir: Path) -> List[Path]:
     extensions = ['*.jpeg', '*.jpg', '*.png']
     files = []
     for ext in extensions:
-        files.extend(list(data_dir.rglob(ext)))
+        files.extend([f for f in data_dir.rglob(ext) if not f.name.startswith('._')])
     return files
 
 def create_splits(raw_data_path: str, output_path: str, test_size: float = 0.15, val_size: float = 0.15, seed: int = 42):
