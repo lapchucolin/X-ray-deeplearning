@@ -1,0 +1,26 @@
+# Data
+data/
+data/raw/
+data/processed/
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Environments
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Models & Logs
+*.pth
+checkpoints/
+runs/
+logs/
+*.png
